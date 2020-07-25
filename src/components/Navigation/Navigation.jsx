@@ -1,5 +1,7 @@
 import React from 'react'
 
+fetch('https://jsonplaceholder.typicode.com/users').then(resp => resp.json())
+
 const Navigation = ({ onRouteChange, isSignedIn }) => {
   if (isSignedIn) {
     return (

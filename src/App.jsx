@@ -29,26 +29,39 @@ const app = new Clarifai.App({
 class App extends React.Component {
   constructor() {
     super()
-    this.onInputChange = this.onInputChange.bind(this)
-    this.onSubmit = this.onSubmit.bind(this)
-    this.onRouteChange = this.onRouteChange.bind(this)
-
     this.state = {
       input: '',
       imageUrl: '',
       box: {},
       route: 'signin',
-      isSignedIn: false
+      isSignedIn: false,
+      user: {
+        id: '',
+        name: '',
+        email: '',
+        entries: 0,
+        joined: ''
+      }
     }
   }
 
-  calculateFaceLocation(data) {
+  loadUser = (data) => {
+    this.setState({
+      user: {
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        entries: data.entries,
+        joined: data.joined
+      }
+    })
+  }
+
+  calculateFaceLocation = (data) => {
     const clarifyFace = data.outputs[0].data.regions[0].region_info.bounding_box
     const image = document.getElementById('inputimage')
     const width = Number(image.width)
     const height = Number(image.height)
-    console.log(clarifyFace)
-    console.log(width, height)
     return {
       leftCol: clarifyFace.left_col * width,
       topRow: clarifyFace.top_row * height,
@@ -57,25 +70,44 @@ class App extends React.Component {
     }
   }
 
-  displayBox(box) {
+  displayBox = (box) => {
     this.setState({ box: box })
   }
 
-  onInputChange(event) {
+  onInputChange = (event) => {
     this.setState({ input: event.target.value })
   }
 
-  onSubmit() {
+  onSubmit = () => {
     this.setState({ imageUrl: this.state.input })
     app.models
       .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
       .then((response) => {
+        if (response) {
+          fetch('http://localhost:3000/image', {
+            method: 'put',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: this.state.user.id })
+          })
+            .then((resp) => resp.json())
+            .then((count) =>
+              this.setState((prevState) => {
+                console.log(1, prevState)
+                return {
+                  user: {
+                    ...prevState.user,
+                    entries: count
+                  }
+                }
+              })
+            )
+        }
         this.displayBox(this.calculateFaceLocation(response))
       })
       .catch((err) => console.log(err))
   }
 
-  onRouteChange(route) {
+  onRouteChange = (route) => {
     if (route === 'signout') {
       this.setState({ isSignedIn: false })
     } else if (route === 'home') {
@@ -96,20 +128,23 @@ class App extends React.Component {
         {route === 'home' ? (
           <>
             <Logo />
-            <Rank />
+            <Rank
+              name={this.state.user.name}
+              entries={this.state.user.entries}
+            />
             <LinkForm
               onInputChange={this.onInputChange}
               onSubmit={this.onSubmit}
             />
-            <FaceRecognition
-              imageUrl={imageUrl}
-              box={box}
-            />
+            <FaceRecognition imageUrl={imageUrl} box={box} />
           </>
         ) : route === 'signin' ? (
-          <SignIn onRouteChange={this.onRouteChange} />
+          <SignIn loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
         ) : (
-          <Register onRouteChange={this.onRouteChange} />
+          <Register
+            loadUser={this.loadUser}
+            onRouteChange={this.onRouteChange}
+          />
         )}
       </div>
     )
