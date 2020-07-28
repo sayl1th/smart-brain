@@ -10,39 +10,29 @@ import SignIn from './components/SignIn/SignIn'
 import Register from './components/Register/Register'
 import './App.css'
 
-const particleOptions = {
-  particles: {
-    number: {
-      value: 30,
-      density: {
-        enable: true,
-        area: 800
-      }
-    }
-  }
-}
-
 const app = new Clarifai.App({
   apiKey: '84eb52d8efee46eab08f67225476977c'
 })
 
+const initialState = {
+  input: '',
+  imageUrl: '',
+  box: {},
+  route: 'signin',
+  isSignedIn: false,
+  user: {
+    id: '',
+    name: '',
+    email: '',
+    entries: 0,
+    joined: ''
+  }
+}
+
 class App extends React.Component {
   constructor() {
     super()
-    this.state = {
-      input: '',
-      imageUrl: '',
-      box: {},
-      route: 'signin',
-      isSignedIn: false,
-      user: {
-        id: '',
-        name: '',
-        email: '',
-        entries: 0,
-        joined: ''
-      }
-    }
+    this.state = initialState
   }
 
   loadUser = (data) => {
@@ -78,38 +68,39 @@ class App extends React.Component {
     this.setState({ input: event.target.value })
   }
 
-  onSubmit = () => {
+  onSubmit = async () => {
     this.setState({ imageUrl: this.state.input })
-    app.models
-      .predict(Clarifai.FACE_DETECT_MODEL, this.state.input)
-      .then((response) => {
-        if (response) {
-          fetch('http://localhost:3000/image', {
-            method: 'put',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: this.state.user.id })
-          })
-            .then((resp) => resp.json())
-            .then((count) =>
-              this.setState((prevState) => {
-                console.log(1, prevState)
-                return {
-                  user: {
-                    ...prevState.user,
-                    entries: count
-                  }
-                }
-              })
-            )
-        }
+
+    try {
+      const response = await app.models.predict(
+        Clarifai.FACE_DETECT_MODEL,
+        this.state.input
+      )
+      if (response) {
+        const resp = await fetch('http://localhost:3000/image', {
+          method: 'put',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: this.state.user.id })
+        })
+        const count = await resp.json()
+        this.setState((prevState) => {
+          return {
+            user: {
+              ...prevState.user,
+              entries: count
+            }
+          }
+        })
         this.displayBox(this.calculateFaceLocation(response))
-      })
-      .catch((err) => console.log(err))
+      }
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   onRouteChange = (route) => {
     if (route === 'signout') {
-      this.setState({ isSignedIn: false })
+      this.setState(initialState)
     } else if (route === 'home') {
       this.setState({ isSignedIn: true })
     }
@@ -120,7 +111,7 @@ class App extends React.Component {
     const { isSignedIn, imageUrl, route, box } = this.state
     return (
       <div className="App">
-        <Particles className="particles" params={particleOptions} />
+        <Particles className="particles" />
         <Navigation
           isSignedIn={isSignedIn}
           onRouteChange={this.onRouteChange}
@@ -138,13 +129,13 @@ class App extends React.Component {
             />
             <FaceRecognition imageUrl={imageUrl} box={box} />
           </>
-        ) : route === 'signin' ? (
-          <SignIn loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
-        ) : (
+        ) : route === 'register' ? (
           <Register
             loadUser={this.loadUser}
             onRouteChange={this.onRouteChange}
           />
+        ) : (
+          <SignIn loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
         )}
       </div>
     )

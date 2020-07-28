@@ -3,8 +3,8 @@ import './LinkForm.css'
 
 const LinkForm = ({ onInputChange, onSubmit }) => {
   return (
-    <div>
-      <p className="f3">
+    <div className="my-center">
+      <p className="my-center f3">
         {'This Magic Brain will detec faces in your pictures.'}
       </p>
       <div className="center">
