@@ -65,34 +65,44 @@ class App extends React.Component {
 
   onSubmit = async () => {
     this.setState({ imageUrl: this.state.input })
-    try {
-      const api = await fetch('https://warm-wildwood-05263.herokuapp.com/imageurl', {
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: this.state.input })
-      })
+    console.log(this.state.input)
 
-      const response = await api.json()
-      if (response) {
-        const resp = await fetch('https://warm-wildwood-05263.herokuapp.com/image', {
-          method: 'put',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: this.state.user.id })
-        })
-
-        const count = await resp.json()
-        this.setState((prevState) => {
-          return {
-            user: {
-              ...prevState.user,
-              entries: count
-            }
+    if (this.state.input) {
+      try {
+        const api = await fetch(
+          'https://warm-wildwood-05263.herokuapp.com/imageurl',
+          {
+            method: 'post',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ input: this.state.input })
           }
-        })
-        this.displayBox(this.calculateFaceLocation(response))
+        )
+
+        const response = await api.json()
+        if (response) {
+          const resp = await fetch(
+            'https://warm-wildwood-05263.herokuapp.com/image',
+            {
+              method: 'put',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: this.state.user.id })
+            }
+          )
+
+          const count = await resp.json()
+          this.setState((prevState) => {
+            return {
+              user: {
+                ...prevState.user,
+                entries: count
+              }
+            }
+          })
+          this.displayBox(this.calculateFaceLocation(response))
+        }
+      } catch (err) {
+        console.log(err)
       }
-    } catch (err) {
-      console.log(err)
     }
   }
 
