@@ -22,15 +22,18 @@ class Register extends React.Component {
   }
 
   onSubmitSignIn = async () => {
-    const resp = await fetch('http://localhost:3000/register', {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: this.state.email,
-        password: this.state.password,
-        name: this.state.name
-      })
-    })
+    const resp = await fetch(
+      'https://warm-wildwood-05263.herokuapp.com/register',
+      {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: this.state.email,
+          password: this.state.password,
+          name: this.state.name
+        })
+      }
+    )
     const user = await resp.json()
 
     if (user.id) {

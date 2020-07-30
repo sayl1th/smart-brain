@@ -66,7 +66,7 @@ class App extends React.Component {
   onSubmit = async () => {
     this.setState({ imageUrl: this.state.input })
     try {
-      const api = await fetch('http://localhost:3000/imageurl', {
+      const api = await fetch('https://warm-wildwood-05263.herokuapp.com/imageurl', {
         method: 'post',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: this.state.input })
@@ -74,7 +74,7 @@ class App extends React.Component {
 
       const response = await api.json()
       if (response) {
-        const resp = await fetch('http://localhost:3000/image', {
+        const resp = await fetch('https://warm-wildwood-05263.herokuapp.com/image', {
           method: 'put',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: this.state.user.id })
