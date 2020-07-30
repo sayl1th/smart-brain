@@ -1,1 +1,2 @@
-# Project from the course ZTM
+# smart-brain
+Project from the course ZTM
