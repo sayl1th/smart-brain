@@ -1,6 +1,5 @@
 import React from 'react'
 import Particles from 'react-particles-js'
-import Clarifai from 'clarifai'
 import Navigation from './components/Navigation/Navigation'
 import Logo from './components/Logo/Logo'
 import LinkForm from './components/LinkForm/LinkForm'
@@ -9,10 +8,6 @@ import FaceRecognition from './components/FaceRecognition/FaceRecognition'
 import SignIn from './components/SignIn/SignIn'
 import Register from './components/Register/Register'
 import './App.css'
-
-const app = new Clarifai.App({
-  apiKey: '84eb52d8efee46eab08f67225476977c'
-})
 
 const initialState = {
   input: '',
@@ -70,18 +65,21 @@ class App extends React.Component {
 
   onSubmit = async () => {
     this.setState({ imageUrl: this.state.input })
-
     try {
-      const response = await app.models.predict(
-        Clarifai.FACE_DETECT_MODEL,
-        this.state.input
-      )
+      const api = await fetch('http://localhost:3000/imageurl', {
+        method: 'post',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: this.state.input })
+      })
+
+      const response = await api.json()
       if (response) {
         const resp = await fetch('http://localhost:3000/image', {
           method: 'put',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: this.state.user.id })
         })
+
         const count = await resp.json()
         this.setState((prevState) => {
           return {
